@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>スタイリングAI｜美容院向けヘアスタイル生成ツール</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #1B2B4B;
+      --blue: #D4A847;
+      --blue-light: #E8B84B;
+      --blue-pale: #FDF6E3;
+      --bg: #F8F8F6;
+      --white: #FFFFFF;
+      --text: #1B2B4B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      overflow-x: hidden;
+      max-width: 100vw;
+      letter-spacing: 0.075em;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 5%;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: var(--navy);
+      letter-spacing: -0.03em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-logo-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, #D4A847, #F5C842);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+    .nav-cta {
+      background: var(--navy);
+      color: white;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .nav-cta:hover { background: var(--blue); }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 100px 5% 64px;
+      position: relative;
+      overflow: hidden;
+      background: #FFFFFF;
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle at 20% 50%, rgba(212,168,71,0.06) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(232,184,75,0.06) 0%, transparent 40%);
+    }
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(212,168,71,0.07) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(212,168,71,0.07) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .hero-inner {
+      position: relative;
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(212,168,71,0.4);
+      border-radius: 100px;
+      padding: 8px 18px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-bottom: 32px;
+      animation: fadeUp 0.6s ease both;
+      background: linear-gradient(115deg, #F0C030, #E8A820);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+    }
+    .hero-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: #E8B84B;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.5); }
+    }
+    .hero h1 {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: clamp(1.9rem, 5vw, 3rem);
+      font-weight: 900;
+      color: #1B2B4B;
+      word-break: keep-all;
+      line-height: 1.3;
+      letter-spacing: 0.06em;
+      margin-bottom: 24px;
+      animation: fadeUp 0.6s ease 0.2s both;
+    }
+    .hero h1 .accent {
+      background: linear-gradient(to top right, #D4A847, #F5C842);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      color: #64748B;
+      font-size: 0.95rem;
+      max-width: 640px;
+      margin: 0 auto 40px;
+      font-weight: 300;
+      line-height: 1.85;
+      animation: fadeUp 0.6s ease 0.3s both;
+    }
+    .hero-cta-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      animation: fadeUp 0.6s ease 0.4s both;
+    }
+    .btn-primary {
+      background: var(--blue);
+      color: white;
+      padding: 16px 36px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(212,168,71,0.4);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary:hover {
+      background: #C49A35;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(212,168,71,0.5);
+    }
+    .btn-primary::after { content: '→'; }
+    /* 元0.78rem の2倍 = 1.56rem */
+    .hero-service-note {
+      font-size: 1.56rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 4px;
+    }
+    .hero-note {
+      color: #94A3B8;
+      font-size: 0.72rem;
+      font-weight: 300;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* SECTION BASE */
+    section { padding: 96px 5%; }
+    .section-inner { max-width: 1000px; margin: 0 auto; }
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: linear-gradient(115deg, #E8A820, #D4A847);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+      font-weight: 700;
+      line-height: 1.3;
+      letter-spacing: 0.06em;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      max-width: 580px;
+      font-weight: 300;
+      line-height: 1.8;
+    }
+
+    /* PROBLEM */
+    .problem { background: white; }
+    .problem-card {
+      background: linear-gradient(135deg, #FEF2F2, #FFF7ED);
+      border: 1px solid #FECACA;
+      border-radius: 16px;
+      padding: 28px 24px;
+      margin-top: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .problem-card::before {
+      content: '\201C';
+      position: absolute;
+      top: -10px; left: 16px;
+      font-size: 5rem;
+      color: #FCA5A5;
+      opacity: 0.3;
+      font-family: serif;
+      line-height: 1;
+    }
+    .problem-quote {
+      font-size: clamp(0.8rem, 2vw, 1.2rem);
+      font-weight: 700;
+      color: #991B1B;
+      line-height: 1.5;
+      position: relative;
+    }
+    .problem-footer {
+      margin-top: 36px;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      font-weight: 400;
+      line-height: 1.8;
+    }
+    .problem-footer strong { color: var(--navy); font-weight: 700; }
+
+    /* SOLUTION */
+    .solution { background: var(--bg); }
+    .solution-lead {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      font-weight: 300;
+      line-height: 1.85;
+      max-width: 640px;
+      margin-top: 16px;
+    }
+    .solution-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 48px;
+    }
+    .solution-card {
+      background: white;
+      border-radius: 16px;
+      padding: 36px 32px;
+      border: 1px solid var(--border);
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .solution-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(115deg, #F0C848, #E8A820);
+      transform: scaleX(0);
+      transition: transform 0.3s;
+    }
+    .solution-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(27,43,75,0.1); }
+    .solution-card:hover::after { transform: scaleX(1); }
+    .solution-icon {
+      width: 52px; height: 52px;
+      background: var(--blue-pale);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+    .solution-card h3 { font-size: 0.95rem; font-weight: 700; color: var(--navy); margin-bottom: 10px; line-height: 1.4; }
+    .solution-card p { font-size: 0.82rem; color: var(--text-muted); font-weight: 300; line-height: 1.75; }
+
+    /* HOW */
+    .how { background: white; }
+    .steps { display: flex; gap: 0; margin-top: 56px; position: relative; }
+    .steps::before {
+      content: '';
+      position: absolute;
+      top: 36px;
+      left: calc(16.6% + 36px);
+      right: calc(16.6% + 36px);
+      height: 2px;
+      background: linear-gradient(90deg, var(--blue-pale), var(--blue), var(--blue-pale));
+    }
+    .step { flex: 1; text-align: center; padding: 0 16px; }
+    .step-num {
+      width: 72px; height: 72px;
+      background: #1B2B4B;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800; font-size: 1.4rem; color: white;
+      margin: 0 auto 20px;
+      position: relative; z-index: 1;
+      box-shadow: 0 4px 20px rgba(27,43,75,0.3);
+    }
+    .step-icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .step h3 { font-size: 0.88rem; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+    .step p { font-size: 0.78rem; color: var(--text-muted); font-weight: 300; line-height: 1.7; }
+
+    /* APP PREVIEW — 縦スクロール */
+    .app-preview { background: var(--bg); }
+    .preview-scroll-list { display: flex; flex-direction: column; gap: 28px; margin-top: 40px; }
+    .preview-item {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .preview-item-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .preview-style-badge {
+      background: var(--navy);
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      padding: 4px 14px;
+      border-radius: 100px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .preview-item-title { font-size: 0.85rem; font-weight: 700; color: var(--navy); }
+    .preview-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+    .preview-col {
+      padding: 16px 18px 20px;
+      border-right: 1px solid var(--border);
+    }
+    .preview-col:last-child { border-right: none; }
+    .preview-col-label {
+      font-size: 0.55rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .preview-col-label.gen-label {
+      background: linear-gradient(115deg, #E8A820, #D4A847);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .preview-img {
+      aspect-ratio: 3/4;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.2rem;
+    }
+    .preview-img.customer { background: linear-gradient(135deg, #EFF6FF, #DBEAFE); }
+    .preview-img.ref      { background: linear-gradient(135deg, #F1F5F9, #E2E8F0); }
+    .preview-img.gen1     { background: linear-gradient(135deg, #FDF6E3, #FFF8E8); }
+    .preview-img.gen2     { background: linear-gradient(135deg, #F0FAF0, #DCFCE7); }
+    .preview-img.gen3     { background: linear-gradient(135deg, #F5F0FD, #EDE9FE); }
+
+    /* FEATURES */
+    .features { background: white; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px; margin-top: 48px;
+    }
+    .feature-card {
+      background: var(--bg);
+      border-radius: 16px; padding: 32px 28px;
+      border: 1px solid var(--border);
+      transition: all 0.3s;
+    }
+    .feature-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(27,43,75,0.08); background: white; }
+    .feature-icon {
+      width: 48px; height: 48px;
+      background: white; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; margin-bottom: 18px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 8px rgba(27,43,75,0.06);
+    }
+    .feature-card h3 { font-size: 0.9rem; font-weight: 700; color: var(--navy); margin-bottom: 10px; line-height: 1.4; }
+    .feature-card p { font-size: 0.8rem; color: var(--text-muted); font-weight: 300; line-height: 1.75; }
+
+    /* BENEFITS — タブなし縦スクロール */
+    .benefits { background: var(--bg); }
+    .benefits-group-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin: 40px 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--border);
+    }
+    .benefits-group-label:first-of-type { margin-top: 48px; }
+    .benefits-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .benefit-item {
+      background: white; border-radius: 12px;
+      padding: 20px 22px;
+      display: flex; gap: 14px; align-items: flex-start;
+      border: 1px solid var(--border);
+    }
+    .benefit-check {
+      width: 26px; height: 26px;
+      background: var(--blue-pale); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: #B8892A; font-size: 0.85rem; flex-shrink: 0; font-weight: 700;
+    }
+    .benefit-item p { font-size: 0.85rem; font-weight: 500; color: var(--text); line-height: 1.55; }
+
+    /* ハイライトカード（HEROから移動） */
+    .benefit-highlight-cards {
+      display: flex; gap: 20px; flex-wrap: wrap; margin-top: 40px;
+    }
+    .benefit-highlight-card {
+      background: var(--white);
+      border: 1.5px solid #D4A847;
+      border-radius: 16px; overflow: hidden;
+      flex: 1; min-width: 200px; max-width: 300px;
+    }
+    .bhc-head {
+      background: linear-gradient(135deg, rgba(212,168,71,0.15), rgba(232,184,75,0.08));
+      padding: 20px 20px 16px;
+      border-bottom: 1.5px solid rgba(212,168,71,0.3);
+      text-align: center;
+    }
+    .bhc-title { font-size: 0.85rem; font-weight: 700; color: var(--navy); line-height: 1.4; }
+    .bhc-body { padding: 16px 20px; text-align: center; }
+    .bhc-desc { font-size: 0.65rem; color: var(--text-muted); font-weight: 300; line-height: 1.7; margin-bottom: 10px; }
+    .bhc-arrow { font-size: 0.62rem; color: var(--blue); margin-bottom: 6px; }
+    .bhc-badge {
+      display: inline-block;
+      background: rgba(212,168,71,0.12);
+      border: 1px solid rgba(212,168,71,0.6);
+      border-radius: 100px; padding: 3px 12px;
+      font-size: 0.6rem; font-weight: 700; color: #B8892A;
+    }
+
+    /* PRICING */
+    .pricing { background: var(--bg); }
+    .pricing-wrap {
+      position: relative; max-width: 560px;
+      margin: 56px auto 0; padding-top: 20px;
+    }
+    .pricing-badge {
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%); z-index: 2;
+      background: linear-gradient(115deg, #F0C030, #E8A820);
+      color: white; font-size: 0.78rem; font-weight: 700;
+      padding: 8px 20px; border-radius: 100px;
+      white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(212,168,71,0.4);
+    }
+    .pricing-card {
+      background: linear-gradient(135deg, var(--navy), #243660);
+      border-radius: 24px; padding: 48px; padding-top: 44px;
+      color: white; position: relative; overflow: hidden;
+    }
+    .pricing-card::before {
+      content: '';
+      position: absolute; top: -80px; right: -80px;
+      width: 220px; height: 220px;
+      background: rgba(212,168,71,0.08); border-radius: 50%;
+    }
+    .pricing-card > * { position: relative; z-index: 1; }
+    .pricing-price { text-align: center; margin-bottom: 8px; margin-top: 16px; }
+    /* 旧価格：小さめ＋斜線 */
+    .pricing-old {
+      font-size: 1.6rem; font-weight: 900;
+      color: rgba(255,255,255,0.4);
+      text-decoration: line-through;
+      line-height: 1.2;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .pricing-old span { font-size: 1rem; font-weight: 400; text-decoration: none; }
+    .pricing-arrow { font-size: 1rem; color: #D4A847; margin: 4px 0; }
+    /* 新価格：大きく */
+    .pricing-new {
+      font-size: 3.2rem; font-weight: 900;
+      color: white; line-height: 1.1;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .pricing-new span { font-size: 1.1rem; font-weight: 400; }
+    .pricing-note {
+      color: rgba(255,255,255,0.55); font-size: 0.82rem;
+      text-align: center; margin-bottom: 32px; font-weight: 300;
+    }
+    .pricing-features { list-style: none; margin-bottom: 28px; }
+    .pricing-features li {
+      font-size: 0.85rem; font-weight: 400;
+      color: rgba(255,255,255,0.85);
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .pricing-features li::before { content: '✓'; color: #D4A847; font-weight: 700; font-size: 0.9rem; }
+    .pricing-option {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px; padding: 16px 20px;
+      margin-bottom: 28px; font-size: 0.8rem;
+      color: rgba(255,255,255,0.65); font-weight: 300;
+    }
+    .pricing-option strong { color: #F0C030; display: block; margin-bottom: 4px; font-size: 0.8rem; }
+    .pricing-service-note { color: #F0C030; font-size: 0.78rem; font-weight: 700; text-align: center; margin-bottom: 16px; }
+    .btn-white {
+      display: block; text-align: center;
+      background: white; color: var(--navy);
+      padding: 16px; border-radius: 10px;
+      font-weight: 700; font-size: 0.95rem;
+      text-decoration: none; transition: all 0.2s;
+    }
+    .btn-white:hover { background: #FDF6E3; transform: translateY(-2px); }
+    .btn-white::after { content: ' →'; }
+    .pricing-sub {
+      color: rgba(255,255,255,0.35); font-size: 0.72rem;
+      margin-top: 10px; font-weight: 300; text-align: center;
+    }
+
+    /* REFERRAL */
+    .referral { background: white; }
+    .referral-desc {
+      font-size: 0.95rem; color: var(--text-muted);
+      font-weight: 300; line-height: 1.85;
+      margin-top: 16px; max-width: 640px;
+    }
+    .referral-tag {
+      display: inline-flex; align-items: center; gap: 12px;
+      background: white; border: 1.5px solid #D4A847;
+      border-radius: 12px; padding: 20px 32px; margin-top: 32px;
+    }
+    .referral-tag span { font-size: 0.9rem; font-weight: 700; color: var(--navy); }
+
+    /* CTA FINAL */
+    .cta-final {
+      background: linear-gradient(135deg, var(--navy), #1a3060);
+      padding: 96px 5%; text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .cta-final::before {
+      content: '';
+      position: absolute; top: -100px; left: -100px;
+      width: 300px; height: 300px;
+      background: rgba(212,168,71,0.07); border-radius: 50%;
+    }
+    .cta-final::after {
+      content: '';
+      position: absolute; bottom: -80px; right: -80px;
+      width: 250px; height: 250px;
+      background: rgba(212,168,71,0.07); border-radius: 50%;
+    }
+    .cta-final > * { position: relative; z-index: 1; }
+    .cta-service-note {
+      font-size: 0.78rem; font-weight: 700;
+      background: linear-gradient(to right, #D4A847, #F5C842);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 16px;
+    }
+    .cta-final h2 {
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 700; color: white; line-height: 1.5; margin-bottom: 16px;
+    }
+    .cta-final p { color: rgba(255,255,255,0.6); font-size: 0.9rem; font-weight: 300; margin-bottom: 36px; }
+    .cta-sub { color: rgba(255,255,255,0.35); font-size: 0.72rem; font-weight: 300; margin-top: 14px; }
+
+    /* CONTACT */
+    .contact { background: var(--bg); padding: 48px 5%; text-align: center; }
+    .contact-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--navy); font-size: 0.95rem; font-weight: 700;
+      text-decoration: none;
+      border: 1.5px solid #D4A847; border-radius: 10px;
+      padding: 14px 32px; background: white;
+      transition: all 0.2s;
+    }
+    .contact-link:hover { background: #FDF6E3; }
+
+    /* FOOTER */
+    footer {
+      background: #0F1A2E; padding: 32px 5%; text-align: center;
+      color: rgba(255,255,255,0.35); font-size: 0.75rem; font-weight: 300;
+    }
+    footer a { color: rgba(255,255,255,0.4); text-decoration: underline; }
+
+    /* RESPONSIVE */
+    @media (max-width: 640px) {
+      .steps { flex-direction: column; gap: 32px; }
+      .steps::before { display: none; }
+      .benefit-highlight-cards { flex-direction: column; }
+      .benefit-highlight-card { max-width: 100%; }
+      .pricing-card { padding: 32px 24px; }
+      .referral-tag { flex-direction: column; text-align: center; padding: 20px; }
+      .preview-cols { grid-template-columns: 1fr; }
+      .preview-col { border-right: none; border-bottom: 1px solid var(--border); }
+      .preview-col:last-child { border-bottom: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="nav-logo-icon">✂️</div>
+    <div style="display:flex;flex-direction:column;gap:1px;">
+      <span style="font-size:0.95rem;font-weight:800;color:var(--navy);line-height:1.2;letter-spacing:-0.02em;">スタイリングAI</span>
+      <span style="font-size:0.62rem;font-weight:400;color:var(--text-muted);line-height:1.2;letter-spacing:0.02em;">ヘアスタイル生成ツール</span>
+    </div>
+  </div>
+  <a href="#register" class="nav-cta">事前登録</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-inner">
+    <div class="hero-badge">
+      美容院向け｜8月末まで半額
+    </div>
+    <h1>満足して帰るお客様が、<br><span class="accent">リピーターに。</span></h1>
+    <p class="hero-sub">
+      お客様の顔写真から、なりたいヘアスタイルをその場で生成。<br>
+      仕上がりイメージを共有することで、ズレをなくし満足度とリピート率を上げます。
+    </p>
+    <div class="hero-cta-group">
+      <p class="hero-service-note">6月下旬<br>サービス開始予定</p>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSclA6UyQihqMD6pA2yEvmVd2hhAI1NHkwr5Khm1a4IvHVJanA/viewform?usp=publish-editor" class="btn-primary">事前登録する</a>
+      <p class="hero-note">カード登録不要</p>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="problem">
+  <div class="section-inner">
+    <p class="section-label">Problem</p>
+    <h2 class="section-title">こんな場面、ありませんか？</h2>
+    <div class="problem-card">
+      <p class="problem-quote">「イメージ写真も見せてもらったけど、思っていた仕上がりと違ったのか再来店がない…」</p>
+    </div>
+    <div class="problem-card">
+      <p class="problem-quote">「カウンセリングに時間がかかって、施術が遅れてしまう…」</p>
+    </div>
+    <p class="problem-footer">
+      言葉や写真だけでは伝わらないイメージのズレが、<strong>クレームや離脱の原因</strong>になっていませんか？
+    </p>
+  </div>
+</section>
+
+<!-- SOLUTION -->
+<section class="solution">
+  <div class="section-inner">
+    <p class="section-label">Solution</p>
+    <h2 class="section-title">「本人の顔で」なりたいスタイルを確認。</h2>
+    <p class="solution-lead">
+      言葉でも、他人の画像でもなく、お客様自身の顔で仕上がりを確認できる。それがこのツールの一番の強みです。
+    </p>
+    <div class="solution-grid">
+      <div class="solution-card">
+        <div class="solution-icon">🪞</div>
+        <h3>お客様の顔で生成</h3>
+        <p>撮影した顔写真をもとにAIがヘアスタイルを生成。「自分だとこうなる」が一目でわかります。</p>
+      </div>
+      <div class="solution-card">
+        <div class="solution-icon">🎯</div>
+        <h3>イメージのズレをゼロに</h3>
+        <p>施術前に仕上がりを共有するので「思っていたのと違う」が激減。クレームリスクを大幅に下げます。</p>
+      </div>
+      <div class="solution-card">
+        <div class="solution-icon">⚡</div>
+        <h3>カウンセリングが速くなる</h3>
+        <p>画像を見せながら話すので、言葉だけのカウンセリングより早く合意できます。施術時間を有効活用。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="how">
+  <div class="section-inner">
+    <p class="section-label">How it works</p>
+    <h2 class="section-title">使い方は、たった3ステップ</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-icon">📷</div>
+        <h3>顔写真を撮影</h3>
+        <p>来店時にスタッフがお客様の顔をスマホで撮影するだけ。</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-icon">✨</div>
+        <h3>AIがヘアスタイルを生成</h3>
+        <p>参考画像を追加（または文字で指定）すると、AIがお客様の顔に合わせてヘアスタイルを生成します。</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-icon">💬</div>
+        <h3>画面を見ながらカウンセリング</h3>
+        <p>生成画像を一緒に見ながら「もう少し短く」など細かなすり合わせができます。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- APP PREVIEW — 縦スクロール -->
+<section class="app-preview">
+  <div class="section-inner">
+    <p class="section-label">App Preview</p>
+    <h2 class="section-title">実際の生成イメージ</h2>
+    <p class="section-desc">お客様が持参・指定した参考画像、またはテキスト指示をもとに、お客様の顔に合わせたヘアスタイルをその場で確認できます。参考画像はお店側が事前に用意することも、お客様がその場で追加することも可能です。</p>
+    <div class="preview-scroll-list">
+
+      <div class="preview-item">
+        <div class="preview-item-header">
+          <div class="preview-style-badge">STYLE 01</div>
+        </div>
+        <div class="preview-cols">
+          <div class="preview-col">
+            <div class="preview-col-label">その場で撮影した写真</div>
+            <img src="images/1.png" alt="撮影した写真" style="width:100%;border-radius:10px;display:block;">
+          </div>
+          <div class="preview-col">
+            <div class="preview-col-label">参考</div>
+            <img src="images/a.png" alt="参考スタイル" style="width:100%;border-radius:10px;display:block;">
+          </div>
+          <div class="preview-col">
+            <div class="preview-col-label gen-label">生成結果</div>
+            <img src="images/a1.png" alt="生成結果" style="width:100%;border-radius:10px;display:block;">
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-item">
+        <div class="preview-item-header">
+          <div class="preview-style-badge">STYLE 02</div>
+        </div>
+        <div class="preview-cols">
+          <div class="preview-col">
+            <div class="preview-col-label">その場で撮影した写真</div>
+            <img src="images/1.png" alt="撮影した写真" style="width:100%;border-radius:10px;display:block;">
+          </div>
+          <div class="preview-col">
+            <div class="preview-col-label">参考</div>
+            <img src="images/b.png" alt="参考スタイル" style="width:100%;border-radius:10px;display:block;">
+          </div>
+          <div class="preview-col">
+            <div class="preview-col-label gen-label">生成結果</div>
+            <img src="images/b2.png" alt="生成結果" style="width:100%;border-radius:10px;display:block;">
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-item" style="overflow:hidden;">
+        <div class="preview-cols">
+          <div class="preview-col" style="grid-column: 1 / -1; border-right:none; padding-bottom:0;">
+            <div class="preview-col-label" style="margin-bottom:6px;">再生成すると少し違うスタイルで出力されることも</div>
+          </div>
+        </div>
+        <div class="preview-cols">
+          <div class="preview-col" style="border-right:none;"></div>
+          <div class="preview-col" style="border-right:none;"></div>
+          <div class="preview-col" style="border-right:none;">
+            <img src="images/b1.png" alt="再生成例" style="width:100%;border-radius:10px;display:block;">
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="section-inner">
+    <p class="section-label">Features</p>
+    <h2 class="section-title">できること</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🖼️</div>
+        <h3>顔写真からヘアスタイル生成</h3>
+        <p>お客様の顔写真をアップロードするだけで、AIが自動でヘアスタイルを合成。その場で複数パターンを確認できます。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📁</div>
+        <h3>スタイル参考画像の登録</h3>
+        <p>よく使うヘアスタイルの参考画像を事前に登録。カウンセリング時にすぐ呼び出せます。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BENEFITS — 縦スクロール、タブなし -->
+<section class="benefits">
+  <div class="section-inner">
+    <p class="section-label">Benefits</p>
+    <h2 class="section-title">導入で変わること</h2>
+
+    <p class="benefits-group-label">サロン・スタッフ</p>
+    <div class="benefits-list">
+      <div class="benefit-item"><div class="benefit-check">✓</div><p>仕上がりのズレが減り、クレームリスクが下がる</p></div>
+      <div class="benefit-item"><div class="benefit-check">✓</div><p>カウンセリング時間が短縮し、施術に集中できる</p></div>
+      <div class="benefit-item"><div class="benefit-check">✓</div><p>満足度が上がり、リピート率が向上する</p></div>
+      <div class="benefit-item"><div class="benefit-check">✓</div><p>体験が口コミにつながる</p></div>
+      <div class="benefit-item"><div class="benefit-check">✓</div><p>「次もあのサロンで生成したい」が次回予約の動機に</p></div>
+      <div class="benefit-item"><div class="benefit-check">✓</div><p>お客様の傾向データが蓄積され、提案力が上がる</p></div>
+    </div>
+
+    <p class="benefits-group-label">お客様</p>
+    <div class="benefits-list">
+      <div class="benefit-item"><div class="benefit-check">✓</div><p>「自分の顔で」仕上がりを事前に確認できる</p></div>
+      <div class="benefit-item"><div class="benefit-check">✓</div><p>言葉でうまく伝えられなくても、画像で共有できる</p></div>
+      <div class="benefit-item"><div class="benefit-check">✓</div><p>仕上がりへの不安が減らせる</p></div>
+      <div class="benefit-item"><div class="benefit-check">✓</div><p>新しいスタイルに挑戦しやすくなる</p></div>
+    </div>
+
+    <!-- HEROから移動したハイライトカード -->
+    <div class="benefit-highlight-cards">
+      <div class="benefit-highlight-card">
+        <div class="bhc-head"><div class="bhc-title">仕上がりへの不安がなくなる</div></div>
+        <div class="bhc-body">
+          <div class="bhc-desc">「なりたい」を顔写真で可視化。言葉のすれ違いがゼロに。</div>
+          <div class="bhc-arrow">▼</div>
+          <div class="bhc-badge">満足度 UP</div>
+        </div>
+      </div>
+      <div class="benefit-highlight-card">
+        <div class="bhc-head"><div class="bhc-title">また来たいと思わせる体験</div></div>
+        <div class="bhc-body">
+          <div class="bhc-desc">「あのサロンでまた生成してもらいたい」が次回予約の動機に。</div>
+          <div class="bhc-arrow">▼</div>
+          <div class="bhc-badge">リピート率 UP</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="register">
+  <div class="section-inner" style="text-align:center;">
+    <p class="section-label">Pricing</p>
+    <h2 class="section-title">シンプルな料金体系</h2>
+    <div class="pricing-wrap">
+      <div class="pricing-badge">🎉 8月末まで半額</div>
+      <div class="pricing-card">
+        <div class="pricing-price">
+          <div class="pricing-old">¥6,000<span> / 月</span></div>
+          <div class="pricing-arrow">▼</div>
+          <div class="pricing-new">¥3,000<span> / 月</span></div>
+        </div>
+        <p class="pricing-note">9月以降は6,000円/月、ご新規様は初月1ヶ月が半額となります。</p>
+        <ul class="pricing-features">
+          <li>顔写真からのヘアスタイル生成</li>
+          <li>参考スタイル画像の登録・管理</li>
+          <li>紹介1件につき月額1,000円割引</li>
+        </ul>
+        <div class="pricing-option">
+          <strong>📦 タブレットセットオプション</strong>
+          +25,000円（タブレット実費・セッティング・直接お渡し込み）愛知県外は要相談
+        </div>
+        <p class="pricing-service-note">6月下旬<br>サービス開始予定</p>
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSclA6UyQihqMD6pA2yEvmVd2hhAI1NHkwr5Khm1a4IvHVJanA/viewform?usp=publish-editor" class="btn-white">事前登録する（無料）</a>
+        <p class="pricing-sub">サービス開始のお知らせを受け取るだけ。費用はかかりません。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- REFERRAL -->
+<section class="referral">
+  <div class="section-inner" style="text-align:center;">
+    <p class="section-label">Referral</p>
+    <h2 class="section-title">紹介でさらにお得に</h2>
+    <p class="referral-desc" style="margin: 16px auto 0;">
+      他のサロンへご紹介いただくと、月額契約1件につき<strong style="color:var(--navy);font-weight:700;">月額1,000円割引</strong>が適用されます。<br>
+      紹介を重ねることで、<strong style="color:#D4A847;font-weight:700;">月額0円でご利用いただくことも可能です。</strong>
+    </p>
+    <div class="referral-tag" style="margin: 32px auto 0;">
+      <span style="font-size:1.5rem;">🎁</span>
+      <span>紹介1件につき月額1,000円割引</span>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-final">
+  <p class="cta-service-note">6月下旬<br>サービス開始予定</p>
+  <h2>まずは、事前登録をして<br>サービス開始をお待ちください。</h2>
+  <a href="https://docs.google.com/forms/d/e/1FAIpQLSclA6UyQihqMD6pA2yEvmVd2hhAI1NHkwr5Khm1a4IvHVJanA/viewform?usp=publish-editor" class="btn-primary" style="display:inline-flex;">事前登録する</a>
+  <p class="cta-sub">※サービス開始のお知らせを受け取るだけ。費用はかかりません。</p>
+</section>
+
+<!-- CONTACT -->
+<section class="contact">
+  <div class="section-inner">
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSeDaqM0WjqHZfSVYbLQ3DgduX3O9zEMd8CUN5r3n1mC6wnPvQ/viewform?usp=dialog" class="contact-link">
+      📩 お問い合わせはこちら
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2026 スタイリングAI. All rights reserved.</p>
+  <p style="margin-top:8px;">Developed by <a href="https://moyurudesign.studio.site/about" target="_blank">もゆるデザインファクトリー</a></p>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('.solution-card, .feature-card, .benefit-item, .step, .preview-item, .benefit-highlight-card, .problem-card').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
